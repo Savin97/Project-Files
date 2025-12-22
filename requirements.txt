@@ -1,0 +1,11 @@
+pandas
+numpy
+yfinance
+requests
+python-dateutil
+seaborn
+matplotlib
+scikit-learn
+statsmodels
+xgboost
+warnings
