@@ -68,3 +68,63 @@ def explore_data(earnings_df):
     plt.title('Surprise vs 10-Day Return (Outliers Removed)')
     plt.grid(True)
     plt.show()
+
+def earnings_surprise_impact_analysis(earnings_df):
+    """
+        3A
+        Outputs show a monotonic relationship - the higher the earnings surprise, the stronger the price reaction which supports that
+        positive surprises lead to consistent positive price movements
+    """
+    print("Actual EPS vs. analyst consensus:")
+    print(earnings_df[['reportedEPS', 'estimatedEPS']].describe())
+    print("\n--------------------------------------------------\n")
+    impact = earnings_df.groupby('surprise_bucket').agg({
+        'ret_3d_from_earnings': ['mean','std'],
+        'ret_10d_from_earnings': ['mean','std']
+    })
+    print("Stock pricing movement post-earnings:")
+    print(impact)
+    print("\n--------------------------------------------------\n")
+
+    # % of cases where stock went up after earnings
+    reaction = earnings_df.groupby('surprise_bucket')['ret_3d_from_earnings'].apply(
+        lambda x: (x > 0).mean()
+    )
+    print("Upward reaction rate (3-day):")
+    print(reaction.head())
+
+    # plt.figure(figsize=(10,6), dpi=150)
+    # sns.boxplot(x='surprise_bucket', y='ret_3d_from_earnings', data=earnings_df)
+    # plt.title("3-Day Returns by Surprise Bucket")
+    # plt.show()
+
+    # plt.figure(figsize=(10,6), dpi=150)
+    # sns.boxplot(x='surprise_bucket', y='ret_10d_from_earnings', data=earnings_df)
+    # plt.title("10-Day Returns by Surprise Bucket")
+    # plt.show()
+
+def show_stock_volatility_trend():
+    # Volatility trend (last vs. previous)
+    def vol_trend(series):
+        if len(series) < 2:
+            return 0
+        return series.iloc[-1] - series.iloc[0]
+
+    vol_summary = (
+        earnings_df.groupby("stock")
+        .apply(lambda group: pd.Series({
+            "vol_trend_10d": vol_trend(group.tail(8)["stdev_ret_10d"]),
+            "avg_vol_10d": group.tail(8)["stdev_ret_10d"].mean()
+        }))
+    )
+
+    trend_summary = earnings_df.groupby("stock").apply(
+        lambda group: pd.Series({
+            "Neg_to_PosSurpriseRate": group.tail(8)["neg_reaction_to_positive_surprise_10d"].mean(),
+            "ConsistencyScore": group.tail(8)["consistent_10d"].mean(),
+            "VolatilityTrend": vol_trend(group.tail(8)["stdev_ret_10d"]),
+            "AvgVolatility": group.tail(8)["stdev_ret_10d"].mean()
+        })
+    ).reset_index()
+
+    return vol_summary, trend_summary

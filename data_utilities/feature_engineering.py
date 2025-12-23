@@ -1,7 +1,7 @@
 # Feature Engineering
 import numpy as np
 import pandas as pd
-from data_utilities.data_processing import classify_reaction
+from data_utilities.data_processing import classify_reaction, expected_direction
 
 def ret_3d_and_ret_10d_cols(df):
     """ 1.6 3-day, 10-day Return Columns"""
@@ -60,7 +60,7 @@ def daily_10d_drift_10d_vol_mom_3d(df):
 
 def add_reaction_3d_10d(earnings_df):
     """
-        adds reaction_3d, reaction_10d
+        Adds reaction_3d, reaction_10d
         Classify post-earnings price reactions as Up / Down / No Change,
         with a threshold of 0.5%
     """
@@ -72,7 +72,7 @@ def add_reaction_3d_10d(earnings_df):
 
 def add_surprise_bucket(earnings_df):
     """
-        adds surprise_bucket
+        Adds surprise_bucket
         Analyze relationship with EPS surprise:
         Mean 10-day return conditional on positive vs. negative surprise.
         Reaction rates (Up, Down) for different surprise buckets
@@ -191,3 +191,163 @@ def add_relative_to_sector(earnings_df):
     # Relative to sector
     earnings_df["relative_to_sector"] = earnings_df["ret_3d_from_earnings"] - earnings_df["sector_mean_3d"]
     return earnings_df
+
+def add_consistent_3d_10d(earnings_df):
+    """
+        Adds consistent_3d, consistent_10d columns
+    """
+    earnings_df["expected"] = earnings_df["surprise"].apply(expected_direction)
+    """ 
+        If surprise is above threshold: Returns 1
+        If its below the negative threshold: -1
+        If its without change: 0
+    """
+    # Consistency check for 3d and 10d reactions
+    earnings_df["consistent_3d"] = (earnings_df["reaction_3d"] == earnings_df["expected"]).astype(int)
+    earnings_df["consistent_10d"] = (earnings_df["reaction_10d"] == earnings_df["expected"]).astype(int)
+    return earnings_df
+
+def add_past_consistency_3d_10d(earnings_df):
+    """
+        How often a stock reacts in the same direction as expected based on earnings results.
+        Takes last 8 earning report directions, returns mean.
+    """
+    earnings_df["past_consistency_10d"] = (
+        earnings_df.groupby("stock")["consistent_10d"]
+        .apply(lambda x: x.shift().rolling(8, min_periods=4).mean())
+        .reset_index(level=0, drop=True)
+    )
+
+    earnings_df["past_consistency_3d"] = (
+        earnings_df.groupby("stock")["consistent_3d"]
+        .apply(lambda x: x.shift().rolling(8, min_periods=4).mean())
+        .reset_index(level=0, drop=True)
+    )
+    return earnings_df
+
+def add_confidence_score(earnings_df):
+    """
+        Adds confidence_score:
+        Range: 0-1
+        ≈ 1.0 → historically very reliable (high confidence)
+        ≈ 0.5 → mixed history (medium confidence)
+        ≈ 0.0 → usually wrong (low confidence)
+    """
+    # weighted combination of recent accuracies
+    earnings_df["confidence_score"] = (
+        0.4 * earnings_df["past_consistency_3d"].fillna(0) +
+        0.6 * earnings_df["past_consistency_10d"].fillna(0)
+    )
+    return earnings_df
+
+def add_neg_reaction_to_pos_surprise_10d(earnings_df):
+    """
+        Compares past 8 earnings reports
+        adds neg_reaction_to_positive_surprise_10d, past_neg_reaction_to_positive_surprise_10d
+    """
+    # Flag negative reaction to positive surprise
+    earnings_df["neg_reaction_to_positive_surprise_10d"] = (
+        (earnings_df["surprise"] > 0) & (earnings_df["reaction_10d"] == -1)
+    ).astype(int)
+
+    # Rolling frequency over last 8 reports
+    earnings_df["past_neg_reaction_to_positive_surprise_10d"] = (
+        earnings_df.groupby("stock")["neg_reaction_to_positive_surprise_10d"]
+        .apply(lambda x: x.shift().rolling(8, min_periods=1).mean())
+        .reset_index(level=0, drop=True)
+    )
+    # UNUSED 3-day version
+    # earnings_df["neg_reaction_to_positive_surprise_3d"] = (
+    #     (earnings_df["surprise"] > 0) & (earnings_df["reaction_3d"] == "Down")
+    # ).astype(int)
+
+    # # Rolling frequency over last 8 reports
+    # earnings_df["past_neg_reaction_to_positive_surprise_3d"] = (
+    #     earnings_df.groupby("stock")["neg_reaction_to_positive_surprise_3d"]
+    #     .apply(lambda x: x.shift().rolling(8, min_periods=1).mean())
+    #     .reset_index(level=0, drop=True)
+    # )
+    return earnings_df
+
+    
+
+def add_past_vol_10d(earnings_df):
+    """
+        Adds past_vol_10d
+    """
+    # Volatility around earnings
+    # Rolling average volatility
+    earnings_df["past_vol_10d"] = (
+        earnings_df.groupby("stock")["stdev_ret_10d"]
+        .apply(lambda x: x.shift().rolling(8, min_periods=1).mean())
+        .reset_index(level=0, drop=True)
+    )
+    return earnings_df
+
+def add_flag_volatility_3d_10d(earnings_df):
+    """
+        Flag cases where the move exceeds 2 x past STDEV
+        returns 0/1
+    """
+    # For 3d moves
+    earnings_df["flag_volatility_3d"] = (
+        (earnings_df["ret_3d_from_earnings"].abs() >
+        2 * earnings_df["stdev_ret_3d"]).astype(int)
+    )
+
+    # For 10d moves
+    earnings_df["flag_volatility_10d"] = (
+        (earnings_df["ret_10d_from_earnings"].abs() >
+        2 * earnings_df["stdev_ret_10d"]).astype(int)
+    )
+
+    # Optional - create a single summary flag if you want just one flag regardless of horizon:
+    # earnings_df["flag_volatility"] = (
+    #     earnings_df[["flag_volatility_3d", "flag_volatility_10d"]].max(axis=1)
+    # )
+    return earnings_df
+
+def add_sector_beta_features(earnings_df):
+    """
+        Adds sector_beta, beta_diff_sector
+        Compares stock beta to sector beta
+    """
+
+    # Sector-level beta (per earnings date)
+    earnings_df["sector_beta"] = (
+        earnings_df.groupby(["sector", "earnings_date"])["beta_5y_monthly"]
+        .transform("mean")
+    )
+    # Compute comparisons to the sector
+    earnings_df["beta_diff_sector"]  = earnings_df["beta_5y_monthly"] - earnings_df["sector_beta"]
+    return earnings_df
+
+def add_relative_3d_10d(earnings_df):
+    """
+        Identify stocks that behave differently from peers post-earnings.
+        Adds relative_10d (and 3d) - performance differential compared to 3d/10d sector mean
+        """
+    # Calculate relative performance
+    earnings_df["relative_3d"] = earnings_df["ret_3d_from_earnings"] - earnings_df["sector_mean_3d"]
+    earnings_df["relative_10d"] = earnings_df["ret_10d_from_earnings"] - earnings_df["sector_mean_10d"]
+    return earnings_df
+
+def add_flag_diff_3d_10d(earnings_df):
+    """ Adds flag_diff_10d (and 3d)
+    Flags unusually large post-earnings moves compared to their sector's typical volatility - detects outlier reactions """
+
+    # Flag anomalies
+    earnings_df["flag_diff_3d"] = (earnings_df["relative_3d"].abs() > VOLATILITY_THRESHOLD * earnings_df["sector_vol_10d"]).astype(int)
+    earnings_df["flag_diff_10d"] = (earnings_df["relative_10d"].abs() > VOLATILITY_THRESHOLD * earnings_df["sector_vol_10d"]).astype(int)
+    return earnings_df
+
+def add_direction_mismatch(earnings_df):
+    """ Adds direction_mismatch
+    Meaning, returns are up while sector's returns are down and vice versa"""
+    # Direction mismatch
+    earnings_df["direction_mismatch"] = (
+        ((earnings_df["ret_3d_from_earnings"] > 0) & (earnings_df["sector_mean_3d"] < 0)) |
+        ((earnings_df["ret_3d_from_earnings"] < 0) & (earnings_df["sector_mean_3d"] > 0))
+    ).astype(int)
+    return earnings_df
+

@@ -186,3 +186,30 @@ def fetch_market_cap_and_beta(df):
 
     return stock_info_df
 
+def fetch_index_beta(earnings_df):
+    """
+        adds beta_vs_sp500, beta_vs_nasdaq, beta_diff_sp500, beta_diff_nasdaq
+        takes a lot of time so turned off right now
+    """
+
+    def get_beta(stock_ticker, index_ticker = "SPY", start = START_DATE, end = CUTOFF_DATE):
+        data = yf.download([stock_ticker, index_ticker], start=start, end=end)["Close"].pct_change().dropna()
+        stock_ret = data[stock_ticker]
+        index_ret = data[index_ticker]
+
+        X = sm.add_constant(index_ret)
+        model = sm.OLS(stock_ret, X).fit()
+        return model.params[index_ticker]
+
+    all_stocks = earnings_df["stock"].unique()
+    betas_sp500 = {}
+    betas_nasdaq = {}
+
+    for s in all_stocks:
+        try:
+            betas_sp500[s] = get_beta(s, "SPY")
+            betas_nasdaq[s] = get_beta(s, "QQQ")
+        except:
+            print(f"Error getting beta for {s}")
+            continue
+    return betas_sp500, betas_nasdaq

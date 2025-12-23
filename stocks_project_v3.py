@@ -72,10 +72,11 @@ print(reaction.head())
 """
 
 # Expected reaction based on earnings surprise
-def expected_direction(surprise, threshold=0.005):
-    if surprise > threshold:
+def expected_direction(surprise):
+    REACTION_THRESHOLD = 0.005
+    if surprise > REACTION_THRESHOLD:
         return "Up"
-    elif surprise < -threshold:
+    elif surprise < -REACTION_THRESHOLD:
         return "Down"
     else:
         return "No Change"

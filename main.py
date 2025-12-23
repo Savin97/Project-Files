@@ -93,8 +93,34 @@ def main():
 
     """ 3. Risk Assessment Methodology """
     """ 3A. Earnings-Based Risk Factors """
-    """ Earnings Surprise Impact Analysis """
 
+    """ Earnings Reaction Consistency Score """
+    # Potential fix needed - min period = 8 Causes lots of empties in past_consistency!
+
+    # Adds consistent_3d, consistent_10d columns: Stock direction - Actual vs Expected
+    earnings_df = add_consistent_3d_10d(earnings_df)
+    # How often a stock reacts in the same direction
+    earnings_df = add_past_consistency_3d_10d(earnings_df)
+    # Adds a confidence score - Range: 0-1
+    earnings_df = add_confidence_score(earnings_df)
+
+    """ Earnings Trend & Risk Indicator """
+    earnings_df = add_neg_reaction_to_pos_surprise_10d(earnings_df)
+
+    """ 3B. Volatility & Market Risk Factors """
+    """ Historical Earnings Volatility Range """
+    earnings_df = add_flag_volatility_3d_10d(earnings_df)
+    """ Beta & Systemic Risk """
+    earnings_df = add_sector_beta_features(earnings_df)
+    """ Fetch and merge index betas. TODO: FIX to cache results, ADD server error handling. 
+    TODO: PROBABBLY CHANGE to Sector betas.Takes a lot of time """
+    # earnings_df = merge_index_beta_with_df(earnings_df)
+    
+    """ Identify stocks that behave differently from peers post-earnings """
+    earnings_df = add_relative_3d_10d(earnings_df)
+    earnings_df = add_flag_diff_3d_10d(earnings_df)
+    earnings_df = add_direction_mismatch(earnings_df)
+    
 
     print("\nDone.\n\n\n")
 

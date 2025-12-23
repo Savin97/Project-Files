@@ -3,7 +3,7 @@
 import pandas as pd
 import os
 from config import CUTOFF_DATE, MIN_EARNINGS_HISTORY, MARKET_CAP_AND_BETA_FILE_PATH, SECTOR_FILE_PATH
-from fetching_functions.api_fetch import fetch_sector_and_sub_sector_data, fetch_market_cap_and_beta
+from fetching_functions.api_fetch import fetch_sector_and_sub_sector_data, fetch_market_cap_and_beta, fetch_index_beta
 from data_utilities.formatting import clean_column_names, format_dates, filter_min_history
 
 
@@ -99,7 +99,7 @@ def merge_sector_and_sub_sector_data(df):
 
 
 def merge_market_cap_and_beta_with_df(df):
-    
+    """ Merges market cap and stock beta with df"""
     if os.path.exists(MARKET_CAP_AND_BETA_FILE_PATH):
         stock_info_df = pd.read_csv(MARKET_CAP_AND_BETA_FILE_PATH)
     else:
@@ -109,4 +109,18 @@ def merge_market_cap_and_beta_with_df(df):
     df = df.merge(stock_info_df, on='stock', how='left')
 
     return df
+
+def merge_index_beta_with_df(earnings_df):
+    """
+        Merges sector_beta, beta_diff_sector with the main df
+    """
+    betas_sp500, betas_nasdaq = add_sector_beta_features(earnings_df)
+    # Merge into the DataFrame
+    earnings_df["beta_vs_sp500"] = earnings_df["stock"].map(betas_sp500)
+    earnings_df["beta_vs_nasdaq"] = earnings_df["stock"].map(betas_nasdaq)
+
+    # Compute comparisons to the S&P500 and Nasdaq
+    earnings_df["beta_diff_sp500"]   = earnings_df["beta_5y_monthly"] - earnings_df["beta_vs_sp500"]
+    earnings_df["beta_diff_nasdaq"]  = earnings_df["beta_5y_monthly"] - earnings_df["beta_vs_nasdaq"]
+    return earnings_df
     
