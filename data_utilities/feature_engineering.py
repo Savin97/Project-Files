@@ -351,3 +351,37 @@ def add_direction_mismatch(earnings_df):
     ).astype(int)
     return earnings_df
 
+def add_sector_mean_3d_same_day(earnings_df):
+    """
+        Adds sector_mean_3d_same_day - Average sector return per earnings date
+        Example logic:
+        “On 2024-11-02, what was the average 3-day post-earnings return of all Tech companies that reported that day?
+    """
+
+    # Average sector return per earnings date
+    sector_performance = (
+        earnings_df.groupby(['sector', 'earnings_date'])['ret_3d_from_earnings']
+        .mean()
+        .reset_index()
+        .rename(columns={'ret_3d_from_earnings': 'sector_mean_3d_same_day'})
+    )
+    # Merge back into main DataFrame
+    earnings_df = earnings_df.merge(sector_performance, on=['sector', 'earnings_date'], how='left')
+    return earnings_df
+
+def add_sector_peer_risk_flag(earnings_df):
+    """   
+        Adds sector_peer_risk_flag - A “Sector & Peer Performance Risk” case happens when:
+        - The stock is Down after earnings
+        - But its sector peers gained (sector_mean_3d > 0).
+        Gives a column identifying all stocks that fell while peers rose - 1 if Flagged, 0 if not.
+    """
+    earnings_df["sector_peer_risk_flag"] = (
+        (earnings_df["ret_3d_from_earnings"] < -REACTION_THRESHOLD) &
+        (earnings_df["sector_mean_3d_same_day"] > REACTION_THRESHOLD)
+    ).astype(int)
+
+    # Optional - Quantify severity - how much the stock underperformed peers
+    #earnings_df["sector_underperf"] = earnings_df["relative_to_sector"].apply(lambda x: -x if x < 0 else 0)
+
+    return earnings_df

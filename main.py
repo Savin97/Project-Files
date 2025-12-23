@@ -115,11 +115,16 @@ def main():
     """ Fetch and merge index betas. TODO: FIX to cache results, ADD server error handling. 
     TODO: PROBABBLY CHANGE to Sector betas.Takes a lot of time """
     # earnings_df = merge_index_beta_with_df(earnings_df)
-    
+
     """ Identify stocks that behave differently from peers post-earnings """
     earnings_df = add_relative_3d_10d(earnings_df)
     earnings_df = add_flag_diff_3d_10d(earnings_df)
     earnings_df = add_direction_mismatch(earnings_df)
+
+    """ Sector & Peer Performance Risk """
+    earnings_df = add_sector_mean_3d_same_day(earnings_df)
+    # Flag Sector & Peer Performance Risk cases
+    earnings_df = add_sector_peer_risk_flag(earnings_df)
     
 
     print("\nDone.\n\n\n")
