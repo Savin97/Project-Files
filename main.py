@@ -26,7 +26,7 @@ from data_utilities.formatting import (
 from data_utilities.data_loader import load_raw_data
 from fetching_functions.api_fetch import fetch_EPS
 from data_utilities.data_processing import keep_earnings_dates_only, handle_NA_values, remove_unuseful_features
-from data_utilities.nlp import 
+from data_utilities.nlp import earnings_report_nlp_analysis
 from risk_scoring.reccomendation import add_risk_recommendation
 import warnings
 
@@ -152,7 +152,15 @@ def main():
 
     """ Explanations of Decisions """
     """ Competitor Earnings Influence """
+    # TODO: CHECK, Might overwrite output_df instead of adding to it
+    output_df = add_reccomendation_explanations(earnings_df)
 
+    """ Pre-Earnings Risk Indicator """
+    # TODO: CHECK, Might overwrite output_df instead of adding to it
+    output_df = add_pre_earnings_risk_flag(earnings_df, output_df)
+
+    """ Sector/Sub-Sector Risk """
+    output_df = add_sector_level_risk_flags(earnings_df, output_df)
 
     print("\nDone.\n\n\n")
 
