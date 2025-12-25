@@ -12,3 +12,10 @@ def check_data(stock_values_file,earning_dates,df,eps_df):
 
     print("In earning_dates but not in original df:", set_eps - set_df)
     print(f"{len(set_df - set_eps)} in original df but not in earning_dates:", set_df - set_eps )
+
+def check_NA_values_in_cols(earnings_df):
+    print("Columns that have N/A values:\n")
+    for column in earnings_df.columns:
+        n_missing = earnings_df[column].isna().sum()
+        if n_missing > 0:
+            print(f"{column}: {n_missing}")

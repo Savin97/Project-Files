@@ -2,6 +2,7 @@
 import numpy as np
 import pandas as pd
 from data_utilities.data_processing import classify_reaction, expected_direction
+from risk_scoring.scoring import risk_score
 
 def ret_3d_and_ret_10d_cols(df):
     """ 1.6 3-day, 10-day Return Columns"""
@@ -385,3 +386,17 @@ def add_sector_peer_risk_flag(earnings_df):
     #earnings_df["sector_underperf"] = earnings_df["relative_to_sector"].apply(lambda x: -x if x < 0 else 0)
 
     return earnings_df
+
+def add_risk_score(earnings_df):
+    earnings_df["risk_score"] = earnings_df.apply(risk_score, axis=1)
+    return earnings_df
+
+def add_reaction_consistency(earnings_df):
+    """ TODO: NOT USED YET """
+
+    earnings_df["reaction_consistency"] = (
+        earnings_df.groupby("stock")["ret_3d_from_earnings"]
+            .transform( lambda x: x.rolling(4).std() ) )
+
+    return earnings_df
+

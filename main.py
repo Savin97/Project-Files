@@ -25,11 +25,15 @@ from data_utilities.formatting import (
     )
 from data_utilities.data_loader import load_raw_data
 from fetching_functions.api_fetch import fetch_EPS
-from data_utilities.data_processing import keep_earnings_dates_only
+from data_utilities.data_processing import keep_earnings_dates_only, handle_NA_values, remove_unuseful_features
+from data_utilities.nlp import 
+from risk_scoring.reccomendation import add_risk_recommendation
 import warnings
 
 def main():
     warnings.filterwarnings('ignore')
+    """ Stage 1 """
+
     """ 1.1 Load datasets """
     stock_values, earning_dates = load_raw_data()
     print("\n\n\nData loaded successfully.\n")
@@ -66,7 +70,7 @@ def main():
     df = daily_10d_drift_10d_vol_mom_3d(df)
 
     """ Stage 1 Complete - Output CSV """
-    #df.to_csv("DF_step_1_complete.csv", index = False)
+    #df.to_csv("outputs/earnings_df_step_1_complete.csv", index = False)
     print("Stage 1 Complete! CSV created.")
 
     """ 2. Data Processing"""
@@ -89,7 +93,7 @@ def main():
     earnings_df = add_relative_to_sector(earnings_df)
 
     """ Stage 2 Complete - Output CSV """
-    earnings_df.to_csv("outputs/earnings_df.csv", index = False)
+    earnings_df.to_csv("outputs/earnings_df_step_2_complete.csv", index = False)
 
     """ 3. Risk Assessment Methodology """
     """ 3A. Earnings-Based Risk Factors """
@@ -126,6 +130,29 @@ def main():
     # Flag Sector & Peer Performance Risk cases
     earnings_df = add_sector_peer_risk_flag(earnings_df)
     
+    """ IN TESTING - Earnings Call Sentiment Analysis """
+    # processed_nlp = nlp()
+
+    """ 3C. Risk Scoring System """
+    earnings_df = handle_NA_values(earnings_df)
+
+    """ Risk scoring per earning report """
+    earnings_df = add_risk_score(earnings_df)
+
+    """ TODO: NOT IMPLEMENTED YET. Risk score for each stock based on last 8 quarters """
+    per_stock_score_df = per_stock_risk_score(earnings_df)
+
+    """ Step 3 Complete CSV """
+    earnings_df.to_csv("outputs/earnings_df_step_3_complete.csv", index = False)
+
+    """ 4. Outputs """
+    """ Pre-Earnings Insights """
+    """ Recommendations based on risk score """
+    output_df = add_risk_recommendation(earnings_df)
+
+    """ Explanations of Decisions """
+    """ Competitor Earnings Influence """
+
 
     print("\nDone.\n\n\n")
 
