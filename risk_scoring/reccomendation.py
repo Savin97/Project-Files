@@ -218,6 +218,7 @@ def add_sector_level_risk_flags(earnings_df, output_df):
 
 def add_excessive_price_move_alert(earnings_df, output_df):
     """
+        Excessive Price Move Alert
         Adds avg_reaction_8q, excessive_move_flag, excessive_move_label
     """
     tmp = earnings_df.sort_values(['stock', 'earnings_date']).copy()
@@ -260,6 +261,7 @@ def add_excessive_price_move_alert(earnings_df, output_df):
     return output_df
 
 def add_surprise_no_reaction_alert(earnings_df, output_df):
+    """ Earnings Surprise with No Reaction """
     tmp = earnings_df.copy()
 
     # --- 2. Thresholds ---
@@ -290,3 +292,192 @@ def add_surprise_no_reaction_alert(earnings_df, output_df):
 
     # --- 8. Save updated output ---
     output_df = output_df.sort_values(['earnings_date', 'stock'])
+
+    return output_df
+
+def add_eps_reaction_divergence_alert(earnings_df, output_df):
+    """ Implied vs. Actual Reaction Divergence """
+
+    tmp = earnings_df.copy()
+
+    # --- 2. Thresholds for defining expected vs. actual direction ---
+    positive_surprise_threshold = 2.0   # EPS beat > +2%
+    negative_surprise_threshold = -2.0  # EPS miss < –2%
+
+    # --- 3. Expected direction based on earnings surprise ---
+    tmp['expected_positive'] = tmp['surprisePercentage'] > positive_surprise_threshold
+    tmp['expected_negative'] = tmp['surprisePercentage'] < negative_surprise_threshold
+
+    # --- 4. Actual direction based on price reaction ---
+    tmp['actual_up']   = tmp['ret_3d_from_earnings'] > 0
+    tmp['actual_down'] = tmp['ret_3d_from_earnings'] < 0
+
+    # --- 5. Flag divergence (earnings beat but price falls, or miss but price rises) ---
+    tmp['reaction_divergence'] = (
+        (tmp['expected_positive'] & tmp['actual_down']) |
+        (tmp['expected_negative'] & tmp['actual_up'])
+    )
+
+    # --- 6. Descriptive alert text ---
+    tmp['divergence_alert'] = np.select(
+        [
+            tmp['expected_positive'] & tmp['actual_down'],
+            tmp['expected_negative'] & tmp['actual_up']
+        ],
+        [
+            "EPS BEAT but price FELL.",
+            "EPS MISS but price ROSE."
+        ],
+        default="None"
+    )
+
+    # --- 7. Keep only needed columns ---
+    divergence_alert = tmp[['stock', 'earnings_date', 'reaction_divergence', 'divergence_alert']].copy()
+
+    # --- 8. Merge with existing output ---
+    output_df = output_df.merge(divergence_alert, on=['stock', 'earnings_date'], how='left')
+
+    # --- 9. Save updated file ---
+    output_df = output_df.sort_values(['earnings_date', 'stock'])
+
+    return output_df
+
+def add_negative_sentiment_alert(earnings_df, output_df):
+    """ Negative Sentiment Alert 
+
+        Finish 3B Earnings Call Sentiment Analysis First!
+        Flag cases where a company’s latest earnings call transcript shows a spike in negative sentiment relative to its past 6-8 quarters.
+        This will help identify potential management pessimism, guidance downgrades, or hidden bad news not yet reflected in the numbers.
+
+        Finish 3B Earnings Call Sentiment Analysis First!
+    """
+    pass
+
+def add_muted_response_alert(earnings_df, output_df):
+    """
+        Muted Stock Response to Earnings Beat/Miss
+        Adds 'muted_response_alert_flag', 'muted_response_alert' features.
+     """
+    tmp = earnings_df.copy()
+
+    # --- 2. Define thresholds (tunable) ---
+    big_surprise_threshold = 5.0    # ±5% EPS or revenue surprise
+    small_move_threshold   = 1.0     # ±1% price move (3-day)
+
+    # --- 3. Flag strong beat or miss ---
+    tmp['big_beat'] = tmp['surprisePercentage'] >= big_surprise_threshold
+    tmp['big_miss'] = tmp['surprisePercentage'] <= -big_surprise_threshold
+
+    # --- 4. Flag muted stock movement ---
+    tmp['muted_move'] = tmp['ret_3d_from_earnings'].abs() < (small_move_threshold / 100)
+
+    # --- 5. Combine conditions into a single alert flag ---
+    tmp['muted_response_alert_flag'] = (
+        (tmp['big_beat'] | tmp['big_miss']) & tmp['muted_move']
+    )
+
+    # --- 6. Human-readable alert label ---
+    tmp['muted_response_alert'] = np.select(
+        [
+            tmp['big_beat'] & tmp['muted_move'],
+            tmp['big_miss'] & tmp['muted_move']
+        ],
+        [
+            "Strong EPS beat (≥ +10%) but muted price reaction (±1%).",
+            "Big EPS miss (≤ −10%) but muted price reaction (±1%)."
+        ],
+        default="None"
+    )
+
+    # --- 7. Keep only relevant columns for merging ---
+    muted_alert = tmp[['stock', 'earnings_date', 'muted_response_alert_flag',
+                    'muted_response_alert']].copy()
+
+    # --- 8. Merge into main output_df ---
+    output_df = output_df.merge(muted_alert, on=['stock', 'earnings_date'], how='left')
+
+    # --- 9. Save updated output ---
+    output_df = output_df.sort_values(['earnings_date', 'stock'])
+
+    return output_df
+
+def add_extreme_volatility_alert(earnings_df, output_df):
+    tmp = earnings_df.sort_values(['stock', 'earnings_date']).copy()
+    # --- 2) Parameters (tunable) ---
+    vol_floor = 1e-6          # avoid division by zero
+    ratio_threshold = 3.0      # "exceeds 3x implied range"
+    use_return_cols = ['ret_3d_from_earnings', 'ret_10d_from_earnings']
+
+    # --- 3) Realized absolute moves ---
+    tmp['realized_move_3d']  = tmp['ret_3d_from_earnings'].abs()
+    tmp['realized_move_10d'] = tmp['ret_10d_from_earnings'].abs()
+
+    # --- 4) Ratios vs (implied) volatility proxy (vol_10d) ---
+    # If vol_10d is NaN or zero, replace with floor so ratios stay defined
+    denom = (tmp['vol_10d'].fillna(0) + vol_floor)
+    tmp['move_vs_vol_3d']  = tmp['realized_move_3d']  / denom
+    tmp['move_vs_vol_10d'] = tmp['realized_move_10d'] / denom
+
+    # --- 5) Flag & human label ---
+    tmp['extreme_volatility_alert_flag'] = (
+        (tmp['move_vs_vol_3d']  > ratio_threshold) |
+        (tmp['move_vs_vol_10d'] > ratio_threshold)
+    ).astype(int)
+
+    tmp['extreme_volatility_alert'] = np.where(
+        tmp['extreme_volatility_alert_flag'] == 1,
+        "Extreme post-earnings volatility: move > 2× normal 10-day range.",
+        "None"
+    )
+
+    # Optional: concise numeric context for dashboards/CSV
+    # (rounded to bps/% for readability)
+    tmp['move_ctx'] = (
+        "3d:" + (tmp['realized_move_3d']*100).round(2).astype(str) + "% "
+        + "(x_sigma:" + tmp['move_vs_vol_3d'].round(2).astype(str) + "); "
+        + "10d:" + (tmp['realized_move_10d']*100).round(2).astype(str) + "% "
+        + "(x_sigma:" + tmp['move_vs_vol_10d'].round(2).astype(str) + ")"
+    )
+
+    # --- 6) Keep only needed columns for merge ---
+    extreme_alert = tmp[[
+        'stock', 'earnings_date',
+        'realized_move_3d', 'realized_move_10d',
+        'move_vs_vol_3d', 'move_vs_vol_10d',
+        'extreme_volatility_alert_flag', 'extreme_volatility_alert',
+        'move_ctx'
+    ]].copy()
+
+    # --- 7) Merge into your existing output_df  ---
+    output_df = output_df.merge(extreme_alert, on=['stock', 'earnings_date'], how='left')
+    output_df = output_df.sort_values(['earnings_date', 'stock'])
+    
+    return output_df
+
+def prepare_df_for_dashboard(output_df):
+    """ Clean and prepare output for the Dashboard """
+    
+    # Optional: keep only key columns for now
+    cols_to_keep = [
+        "earnings_date", "stock", "risk_score", "recommendation",
+        "excessive_move_label", "surprise_no_reaction_alert", "reaction_divergence",
+        "muted_response_alert_flag", "extreme_volatility_alert_flag"
+    ]
+
+    dashboard_df = output_df[cols_to_keep]
+    dashboard_df = dashboard_df.dropna()
+
+    # Rename for clean display
+    dashboard_df = dashboard_df.rename(columns={
+        "stock": "Stock",
+        "earnings_date": "Date",
+        "risk_score": "Risk Score",
+        "pre_earnings_recommendation": "Recommendation",
+        "excessive_move_flag": "Excessive Move",
+        "no_reaction_flag": "No Reaction",
+        "reaction_divergence": "Reaction Divergence",
+        "muted_response_alert_flag": "Muted Response",
+        "extreme_volatility_alert_flag": "Extreme Volatility"
+    })
+
+    return dashboard_df
