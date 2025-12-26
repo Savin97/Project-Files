@@ -7,7 +7,8 @@ from risk_scoring.reccomendation import (add_risk_recommendation,
                                          add_reccomendation_explanations,
                                          add_pre_earnings_risk_flag,
                                          add_sector_level_risk_flags,
-                                         add_excessive_price_move_alert)
+                                         add_excessive_price_move_alert,
+                                         add_surprise_no_reaction_alert)
 
 
 def main():
@@ -37,6 +38,8 @@ def main():
   """ Excessive Price Move Alert """
   output_df = add_excessive_price_move_alert(earnings_df, output_df)
 
+  """ Earnings Surprise with No Reaction """
+  output_df = add_surprise_no_reaction_alert(earnings_df, output_df)
   print("\nDone.\n\n\n")
 
 if __name__ == "__main__":
