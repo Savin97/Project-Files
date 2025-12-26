@@ -1,4 +1,4 @@
-
+import numpy as np
 def recommendation_from_risk(score):
     """
         Sell / Sell 50% / Hold
@@ -215,3 +215,78 @@ def add_sector_level_risk_flags(earnings_df, output_df):
     output_df = output_df.drop(columns=['sector']).sort_values(['earnings_date', 'stock'])
 
     return output_df
+
+def add_excessive_price_move_alert(earnings_df, output_df):
+    """
+        Adds avg_reaction_8q, excessive_move_flag, excessive_move_label
+    """
+    tmp = earnings_df.sort_values(['stock', 'earnings_date']).copy()
+
+    # --- 2. Compute rolling average of absolute 3-day post-earnings moves (last 8 quarters) ---
+    tmp['avg_reaction_8q'] = (
+        tmp.groupby('stock')['ret_3d_from_earnings']
+        .transform(lambda x: x.abs().shift().rolling(8, min_periods=2).mean())
+    )
+
+    # --- 3. Compare current reaction to historical average ---
+    tmp['excessive_move_flag'] = np.where(
+        tmp['ret_3d_from_earnings'].abs() > tmp['avg_reaction_8q'],
+        1, 0
+    )
+
+    # --- 4. Create human-readable label for easier interpretation ---
+    tmp['excessive_move_label'] = np.select(
+        [
+            tmp['excessive_move_flag'] == 1,
+            tmp['excessive_move_flag'] == 0
+        ],
+        [
+            "Yes - Move exceeds 8-quarter average.",
+            "No - Within normal range."
+        ],
+        default="No data"
+    )
+
+    # --- 5. Keep only relevant fields ---
+    move_alert = tmp[['stock', 'earnings_date', 'ret_3d_from_earnings',
+                    'avg_reaction_8q', 'excessive_move_label']].copy()
+
+    # --- 6. Merge into your main output_df ---
+    output_df = output_df.merge(move_alert, on=['stock', 'earnings_date'], how='left')
+
+    # --- 7. Save updated output ---
+    output_df = output_df.sort_values(['earnings_date', 'stock'])
+
+    return output_df
+
+def add_surprise_no_reaction_alert(earnings_df, output_df):
+    tmp = earnings_df.copy()
+
+    # --- 2. Thresholds ---
+    significant_earnings_surprise_threshold = 5.0   # +5% or more EPS surprise
+    low_reaction_threshold = 0.5                    # |price move| < 0.5%
+
+    # --- 3. Create component flags ---
+    tmp['strong_positive_surprise'] = tmp['surprisePercentage'] >= significant_earnings_surprise_threshold
+    tmp['no_reaction'] = tmp['ret_3d_from_earnings'].abs() < low_reaction_threshold / 100
+
+    # --- 4. Combine both to form the alert condition ---
+    tmp['earnings_surprise_no_reaction'] = (
+        tmp['strong_positive_surprise'] & tmp['no_reaction']
+    )
+
+    # --- 5. Human-readable alert label ---
+    tmp['surprise_no_reaction_alert'] = np.where(
+        tmp['earnings_surprise_no_reaction'],
+        "Strong earnings but muted price response.",
+        "None"
+    )
+
+    # --- 6. Keep only relevant columns for merge ---
+    no_reaction_alert = tmp[['stock', 'earnings_date', 'surprise_no_reaction_alert']].copy()
+
+    # --- 7. Merge into the main output_df ---
+    output_df = output_df.merge(no_reaction_alert, on=['stock', 'earnings_date'], how='left')
+
+    # --- 8. Save updated output ---
+    output_df = output_df.sort_values(['earnings_date', 'stock'])

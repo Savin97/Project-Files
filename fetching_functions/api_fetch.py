@@ -5,6 +5,7 @@
 import requests
 import pandas as pd
 import numpy as np
+import statsmodels.api as sm
 import time
 import os
 import yfinance as yf

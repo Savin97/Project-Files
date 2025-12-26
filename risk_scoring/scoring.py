@@ -1,3 +1,8 @@
+# Holds scoring algos, imports shouldnt be here when everythings fixed
+
+import pandas as pd
+import numpy as np
+
 
 def risk_score(row):
     """

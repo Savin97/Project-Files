@@ -4,6 +4,7 @@ import pandas as pd
 import os
 from config import CUTOFF_DATE, MIN_EARNINGS_HISTORY, MARKET_CAP_AND_BETA_FILE_PATH, SECTOR_FILE_PATH
 from fetching_functions.api_fetch import fetch_sector_and_sub_sector_data, fetch_market_cap_and_beta, fetch_index_beta
+from data_utilities.feature_engineering import add_sector_beta_features
 from data_utilities.formatting import clean_column_names, format_dates, filter_min_history
 
 

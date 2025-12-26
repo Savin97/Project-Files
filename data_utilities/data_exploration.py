@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 
 # Function to explore data for insights
@@ -103,7 +104,7 @@ def earnings_surprise_impact_analysis(earnings_df):
     # plt.title("10-Day Returns by Surprise Bucket")
     # plt.show()
 
-def show_stock_volatility_trend():
+def show_stock_volatility_trend(earnings_df):
     # Volatility trend (last vs. previous)
     def vol_trend(series):
         if len(series) < 2:

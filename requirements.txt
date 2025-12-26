@@ -11,3 +11,4 @@ xgboost
 warnings
 streamlit
 python-dotenv
+nltk

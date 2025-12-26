@@ -1,6 +1,7 @@
 # Feature Engineering
 import numpy as np
 import pandas as pd
+from config import REACTION_THRESHOLD, VOLATILITY_THRESHOLD
 from data_utilities.data_processing import classify_reaction, expected_direction
 from risk_scoring.scoring import risk_score
 
@@ -67,7 +68,6 @@ def add_reaction_3d_10d(earnings_df):
     """
     earnings_df["reaction_3d"] = earnings_df["ret_3d_from_earnings"].apply(classify_reaction)
     earnings_df["reaction_10d"] = earnings_df["ret_10d_from_earnings"].apply(classify_reaction)
-
     return earnings_df
 
 
@@ -96,12 +96,10 @@ def add_is_up_down_nochange(earnings_df, reaction_days = 10):
     # Sort earnings chronologically per stock
     earnings_df = earnings_df.sort_values(["stock", "earnings_date"])
     # Map reactions to numeric indicators
-    earnings_df["is_up"]       = (earnings_df[col] == "Up").astype(int)
-    earnings_df["is_down"]     = (earnings_df[col] == "Down").astype(int)
-    earnings_df["is_nochange"] = (earnings_df[col] == "No Change").astype(int)
+    earnings_df["is_up"]       = (earnings_df[col] == 1).astype(int)
+    earnings_df["is_down"]     = (earnings_df[col] == -1).astype(int)
+    earnings_df["is_nochange"] = (earnings_df[col] == 0).astype(int)
     # earnings_df["is_nochange"] = (earnings_df[f"reaction_{reaction_days}d"] == "No Change").astype(int)
-
-    earnings_df.drop(columns = [f"reaction_{reaction_days}d"], inplace=True)
 
     return earnings_df
 

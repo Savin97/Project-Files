@@ -1,4 +1,4 @@
-from config import REACTION_THRESHOLD
+from config import REACTION_THRESHOLD, MISSING_FEATURE_VALUES_THRESHOLD
 
 def keep_earnings_dates_only(df):
     earnings_df = df[df['is_earnings']].copy()
