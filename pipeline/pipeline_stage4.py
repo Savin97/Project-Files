@@ -25,7 +25,6 @@ def stage4(earnings_df):
   """ Pre-Earnings Risk Indicator """
   # TODO: CHECK, Might overwrite output_df instead of adding to it
   output_df = add_pre_earnings_risk_flag(earnings_df, output_df)
-
   """ Sector/Sub-Sector Risk """
   output_df = add_sector_level_risk_flags(earnings_df, output_df)
 
