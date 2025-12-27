@@ -1,5 +1,6 @@
-pandas
-numpy
+pandas>=2.0
+numpy>=1.26
+streamlit>=1.39
 yfinance
 requests
 python-dateutil
@@ -8,7 +9,5 @@ matplotlib
 scikit-learn
 statsmodels
 xgboost
-warnings
-streamlit
 python-dotenv
 nltk

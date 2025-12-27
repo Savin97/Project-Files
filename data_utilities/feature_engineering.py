@@ -45,7 +45,7 @@ def daily_10d_drift_10d_vol_mom_3d(df):
     df['vol_10d']   = df.groupby('stock')['daily_ret'].transform(lambda x: x.rolling(10).std().shift(1)) # 10-day volatility
     df['mom_3d']    = df.groupby('stock')['daily_ret'].transform(lambda x: x.rolling(3).sum().shift(1)) # 3-day momentum
 
-    sector_features = (
+    sector_features_10d = (
         df.groupby(['sector', 'date'])
         .agg(
             sector_drift_10d=('drift_10d', 'mean'), # AVG of all drift_10d values across every stock in the same sector on that day, percentages
@@ -56,7 +56,7 @@ def daily_10d_drift_10d_vol_mom_3d(df):
         .reset_index()
     )
 
-    df = df.merge(sector_features, on=['sector', 'date'], how='left')
+    df = df.merge(sector_features_10d, on=['sector', 'date'], how='left')
 
     return df
 
@@ -79,7 +79,12 @@ def add_surprise_bucket(earnings_df):
         Reaction rates (Up, Down) for different surprise buckets
     """
     # Bucket surprises into terciles
-    earnings_df["surprise_bucket"] = pd.qcut(earnings_df["surprise"], 3, labels=["Low", "Mid", "High"])
+    earnings_df["surprise_bucket"] = pd.qcut(
+        earnings_df["surprise"],
+        3,
+        labels=["Low", "Mid", "High"],
+        duplicates="drop"
+    )
     # Mean returns by surprise bucket
     #print(earnings_df.groupby("surprise_bucket")[["ret_3d_from_earnings","ret_10d_from_earnings"]].mean())
     # Frequency of Up/Down by bucket
@@ -108,26 +113,21 @@ def add_rolling_frequencies(earnings_df):
         Rolling frequencies over last 8 quarters (excluding current via shift)
         Adds "past_up_freq", "past_down_freq", "past_nochange_freq" columns
     """
-    past_up = (
-        earnings_df.groupby("stock")["is_up"]
-        .apply(lambda x: x.shift().rolling(8, min_periods=1).mean())
-        .reset_index(level=0, drop=True)
+    earnings_df["past_up_freq"] = (
+        earnings_df
+        .groupby("stock")["is_up"]
+        .transform(lambda x: x.shift().rolling(8, min_periods=1).mean())
     )
-    earnings_df["past_up_freq"] = past_up
-
-    past_down = (
-        earnings_df.groupby("stock")["is_down"]
-        .apply(lambda x: x.shift().rolling(8, min_periods=1).mean())
-        .reset_index(level=0, drop=True)
+    earnings_df["past_down_freq"] = (
+        earnings_df
+        .groupby("stock")["is_down"]
+        .transform(lambda x: x.shift().rolling(8, min_periods=1).mean())
     )
-    earnings_df["past_down_freq"] = past_down
-
-    past_nochange = (
-        earnings_df.groupby("stock")["is_nochange"]
-        .apply(lambda x: x.shift().rolling(8, min_periods=1).mean())
-        .reset_index(level=0, drop=True)
+    earnings_df["past_nochange_freq"] = (
+        earnings_df
+        .groupby("stock")["is_nochange"]
+        .transform(lambda x: x.shift().rolling(8, min_periods=1).mean())
     )
-    earnings_df["past_nochange_freq"] = past_nochange
 
     # Fill empty values (first quarters) with zeros. is_first_report column flags them as first quarters so should be okay.
     earnings_df[["past_up_freq","past_down_freq","past_nochange_freq"]] = (

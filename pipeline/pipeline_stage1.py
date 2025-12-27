@@ -17,6 +17,7 @@ from data_utilities.formatting import (
     )
 from data_utilities.data_loader import load_raw_data
 from fetching_functions.api_fetch import fetch_EPS
+from config import STEP1_OUTPUT_FILE_PATH
 
 def load_and_format_data():
     warnings.filterwarnings('ignore')
@@ -61,6 +62,6 @@ def add_stage_1_features(df):
     df = daily_10d_drift_10d_vol_mom_3d(df)
 
     """ Stage 1 Complete - Output CSV """
-    # df.to_csv("outputs/earnings_df_step_1_complete.csv", index = False)
+    df.to_csv(STEP1_OUTPUT_FILE_PATH, index = False)
     # print("Stage 1 Complete! CSV created.")
     return df

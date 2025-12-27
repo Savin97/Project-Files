@@ -1,6 +1,6 @@
 # Imports from other modules
-from risk_scoring.reccomendation import (add_risk_recommendation,
-                                         add_reccomendation_explanations,
+from risk_scoring.recommendation import (add_risk_recommendation,
+                                         add_recommendation_explanations,
                                          add_pre_earnings_risk_flag,
                                          add_sector_level_risk_flags,
                                          add_excessive_price_move_alert,
@@ -9,6 +9,8 @@ from risk_scoring.reccomendation import (add_risk_recommendation,
                                          add_muted_response_alert,
                                          add_extreme_volatility_alert,
                                          prepare_df_for_dashboard)
+from config import OUTPUT_DF_FULL_DETAILED_FILE_PATH, DASHBOARD_OUTPUT_FILE_PATH
+
 def stage4(earnings_df):
   """ 4. Outputs """
   """ Pre-Earnings Insights """
@@ -18,7 +20,7 @@ def stage4(earnings_df):
   """ Explanations of Decisions """
   """ Competitor Earnings Influence """
   # TODO: CHECK, Might overwrite output_df instead of adding to it
-  output_df = add_reccomendation_explanations(earnings_df)
+  output_df = add_recommendation_explanations(earnings_df, output_df)
 
   """ Pre-Earnings Risk Indicator """
   # TODO: CHECK, Might overwrite output_df instead of adding to it
@@ -48,7 +50,6 @@ def stage4(earnings_df):
   
   """ Final Output DataFrame for Dashboard """
   dashboard_df = prepare_df_for_dashboard(output_df)
-
-  dashboard_df.to_csv("outputs/output_dashboard_ready.csv", index=False)
+  output_df.to_csv(OUTPUT_DF_FULL_DETAILED_FILE_PATH, index=False)
 
   return dashboard_df

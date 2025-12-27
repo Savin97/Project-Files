@@ -10,13 +10,14 @@ from data_utilities.feature_engineering import (
     add_relative_to_sector
   )
 from data_utilities.data_processing import keep_earnings_dates_only
+from config import STEP2_OUTPUT_FILE_PATH
 
 def stage2(df):
     """ 2. Data Processing"""
     # Keep only rows of earnings report dates
     earnings_df = keep_earnings_dates_only(df)
-    earnings_df.to_csv("outputs/earnings_df.csv", index = False)
-
+    # Sort earnings chronologically per stock
+    earnings_df = earnings_df.sort_values(["stock", "earnings_date"])
     """ 2.1 Earnings Pattern Analysis """
     earnings_df = add_reaction_3d_10d(earnings_df)
     earnings_df = add_surprise_bucket(earnings_df)
@@ -32,6 +33,6 @@ def stage2(df):
     earnings_df = add_relative_to_sector(earnings_df)
 
     """ Stage 2 Complete - Output CSV """
-    #earnings_df.to_csv("outputs/earnings_df_step_2_complete.csv", index = False)
+    earnings_df.to_csv(STEP2_OUTPUT_FILE_PATH, index = False)
 
     return earnings_df

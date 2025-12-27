@@ -17,11 +17,11 @@ from data_utilities.feature_engineering import (
 
 from data_utilities.data_processing import handle_NA_values
 from risk_scoring.scoring import per_stock_risk_score
+from config import STEP3_OUTPUT_FILE_PATH
 
 def stage3(earnings_df):
     """ 3. Risk Assessment Methodology """
     """ 3A. Earnings-Based Risk Factors """
-
     """ Earnings Reaction Consistency Score """
     # Potential fix needed - min period = 8 Causes lots of empties in past_consistency!
 
@@ -68,6 +68,6 @@ def stage3(earnings_df):
     per_stock_score_df = per_stock_risk_score(earnings_df)
 
     """ Step 3 Complete CSV """
-    earnings_df.to_csv("outputs/earnings_df_step_3_complete.csv", index = False)
+    earnings_df.to_csv(STEP3_OUTPUT_FILE_PATH, index = False)
 
     return earnings_df

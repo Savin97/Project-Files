@@ -9,6 +9,13 @@ EARNING_DATES_FILE_PATH = "data/Earning_2020_2025_filled.csv"
 EPS_DF_FILE_PATH = "data/EPS_Alpha_Vantage.csv"
 SECTOR_FILE_PATH = "data/sector_lookup.csv"
 MARKET_CAP_AND_BETA_FILE_PATH = "data/market_cap_and_beta_fetched_from_yfinance.csv"
+OUTPUT_DIR = "outputs"
+STEP1_OUTPUT_FILE_PATH = os.path.join(OUTPUT_DIR, "earnings_df_step_1_complete.csv")
+STEP2_OUTPUT_FILE_PATH = os.path.join(OUTPUT_DIR, "earnings_df_step_2_complete.csv")
+STEP3_OUTPUT_FILE_PATH = os.path.join(OUTPUT_DIR, "earnings_df_step_3_complete.csv")
+OUTPUT_DF_FULL_DETAILED_FILE_PATH = os.path.join(OUTPUT_DIR, "output_full_detailed.csv")
+DASHBOARD_OUTPUT_FILE_PATH = os.path.join(OUTPUT_DIR, "output_dashboard_ready.csv")
+
 
 # === Global Parameters ===
 ALPHA_VANTAGE_API_KEY = os.getenv("ALPHA_VANTAGE_API_KEY")
