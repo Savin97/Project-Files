@@ -1,5 +1,6 @@
 # app.py
 import streamlit as st
+import sys
 import pandas as pd
 from pathlib import Path
 # Add project root (parent of "streamlit") to Python path
