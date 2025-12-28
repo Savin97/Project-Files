@@ -17,8 +17,8 @@ outputs/
 .env
 *.env
 .ipynb_checkpoints/
-data/
-**/data/
+# data/   ## CHANGE BACK!!!!!
+# **/data/
 *.csv
 secrets.json
 config_local.py
