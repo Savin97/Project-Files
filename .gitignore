@@ -8,8 +8,8 @@ __pycache__/
 # Data / outputs (tweak if needed)
 DF_step_1_complete.csv
 earnings_df.csv
-outputs/
-**/outputs/
+# outputs/ ## CHANGE BACK!!!!!
+# **/outputs/
 
 # OS stuff
 .DS_Store
