@@ -1,7 +1,22 @@
 import numpy as np
+from config import (SIGNIFICANT_EARNINGS_SURPRISE_THRESHOLD,
+                    LOW_REACTION_THRESHOLD,
+                    POSITIVE_SURPRISE_THRESHOLD,
+                    NEGATIVE_SURPRISE_THRESHOLD)
+
 def recommendation_from_risk(score):
     """
         Sell / Sell 50% / Hold
+
+        TODO: Very simple mapping: it assumes risk = “position size to cut”.
+
+        Doesn't use:
+        trend
+        valuation
+        investor time horizon
+        sector conditions
+
+        But as a first-pass sizing suggestion it's reasonable for a tool called Risk/Volatility Tracker.
     """
     # Filter for Upcoming Earnings Only
     # today = datetime.today()
@@ -270,13 +285,9 @@ def add_surprise_no_reaction_alert(earnings_df, output_df):
     """ Earnings Surprise with No Reaction """
     tmp = earnings_df.copy()
 
-    # --- 2. Thresholds ---
-    significant_earnings_surprise_threshold = 5.0   # +5% or more EPS surprise
-    low_reaction_threshold = 0.5                    # |price move| < 0.5%
-
     # --- 3. Create component flags ---
-    tmp['strong_positive_surprise'] = tmp['surprisePercentage'] >= significant_earnings_surprise_threshold
-    tmp['no_reaction'] = tmp['ret_3d_from_earnings'].abs() < low_reaction_threshold / 100
+    tmp['strong_positive_surprise'] = tmp['surprisePercentage'] >= SIGNIFICANT_EARNINGS_SURPRISE_THRESHOLD
+    tmp['no_reaction'] = tmp['ret_3d_from_earnings'].abs() < LOW_REACTION_THRESHOLD
 
     # --- 4. Combine both to form the alert condition ---
     tmp['earnings_surprise_no_reaction'] = (
@@ -306,13 +317,9 @@ def add_eps_reaction_divergence_alert(earnings_df, output_df):
 
     tmp = earnings_df.copy()
 
-    # --- 2. Thresholds for defining expected vs. actual direction ---
-    positive_surprise_threshold = 2.0   # EPS beat > +2%
-    negative_surprise_threshold = -2.0  # EPS miss < –2%
-
     # --- 3. Expected direction based on earnings surprise ---
-    tmp['expected_positive'] = tmp['surprisePercentage'] > positive_surprise_threshold
-    tmp['expected_negative'] = tmp['surprisePercentage'] < negative_surprise_threshold
+    tmp['expected_positive'] = tmp['surprisePercentage'] > POSITIVE_SURPRISE_THRESHOLD
+    tmp['expected_negative'] = tmp['surprisePercentage'] < NEGATIVE_SURPRISE_THRESHOLD
 
     # --- 4. Actual direction based on price reaction ---
     tmp['actual_up']   = tmp['ret_3d_from_earnings'] > 0
@@ -366,16 +373,14 @@ def add_muted_response_alert(earnings_df, output_df):
      """
     tmp = earnings_df.copy()
 
-    # --- 2. Define thresholds (tunable) ---
-    big_surprise_threshold = 5.0    # ±5% EPS or revenue surprise
-    small_move_threshold   = 1.0     # ±1% price move (3-day)
+    
 
     # --- 3. Flag strong beat or miss ---
-    tmp['big_beat'] = tmp['surprisePercentage'] >= big_surprise_threshold
-    tmp['big_miss'] = tmp['surprisePercentage'] <= -big_surprise_threshold
+    tmp['big_beat'] = tmp['surprisePercentage'] >= SIGNIFICANT_EARNINGS_SURPRISE_THRESHOLD
+    tmp['big_miss'] = tmp['surprisePercentage'] <= -SIGNIFICANT_EARNINGS_SURPRISE_THRESHOLD
 
     # --- 4. Flag muted stock movement ---
-    tmp['muted_move'] = tmp['ret_3d_from_earnings'].abs() < (small_move_threshold / 100)
+    tmp['muted_move'] = tmp['ret_3d_from_earnings'].abs() < LOW_REACTION_THRESHOLD
 
     # --- 5. Combine conditions into a single alert flag ---
     tmp['muted_response_alert_flag'] = (
