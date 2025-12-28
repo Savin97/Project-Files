@@ -16,7 +16,8 @@ st.set_page_config(
 
 @st.cache_data(show_spinner="Running pipeline…")
 def get_earnings_df(use_cached_eps: bool = True) -> pd.DataFrame:
-    return run_pipeline(use_cached_eps=use_cached_eps)
+    #return run_pipeline(use_cached_eps=use_cached_eps)
+    return run_pipeline()
 
 
 def sidebar_filters(df: pd.DataFrame) -> pd.DataFrame:
