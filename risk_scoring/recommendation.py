@@ -217,7 +217,7 @@ def add_sector_level_risk_flags(earnings_df, output_df):
 
     output_df = output_df.merge(latest_sector, on='stock', how='left')
     # --- 5. Merge sector-level risk flags ---
-    output_df = output_df.merge(sector_trend[['sector', 'sector_risk_flag']], on='sector', how='left')
+    # output_df = output_df.merge(sector_trend[['sector', 'sector_risk_flag']], on='sector', how='left')
     output_df = output_df.drop(columns=['sector']).sort_values(['earnings_date', 'stock'])
 
     return output_df
