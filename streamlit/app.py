@@ -1,15 +1,12 @@
 # app.py
 import streamlit as st
 import pandas as pd
-
-from pipeline import run_pipeline # TODO: change to main.py or edit main.py to have a run_pipeline function
-
+from pipeline.pipeline import run_pipeline
 
 st.set_page_config(
     page_title="Earnings Reaction & Risk Dashboard",
     layout="wide"
 )
-
 
 @st.cache_data(show_spinner="Running pipeline…")
 def get_earnings_df(use_cached_eps: bool = True) -> pd.DataFrame:
