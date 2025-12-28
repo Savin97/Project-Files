@@ -1,6 +1,11 @@
 # app.py
 import streamlit as st
 import pandas as pd
+from pathlib import Path
+# Add project root (parent of "streamlit") to Python path
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 from pipeline.pipeline import run_pipeline
 
 st.set_page_config(
