@@ -1,19 +1,23 @@
 # app.py
 import streamlit as st
+import sys
 import pandas as pd
-
-from pipeline import run_pipeline # TODO: change to main.py or edit main.py to have a run_pipeline function
-
+from pathlib import Path
+# Add project root (parent of "streamlit") to Python path
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+from pipeline.pipeline import run_pipeline
 
 st.set_page_config(
     page_title="Earnings Reaction & Risk Dashboard",
     layout="wide"
 )
 
-
 @st.cache_data(show_spinner="Running pipeline…")
 def get_earnings_df(use_cached_eps: bool = True) -> pd.DataFrame:
-    return run_pipeline(use_cached_eps=use_cached_eps)
+    #return run_pipeline(use_cached_eps=use_cached_eps)
+    return run_pipeline()
 
 
 def sidebar_filters(df: pd.DataFrame) -> pd.DataFrame:
