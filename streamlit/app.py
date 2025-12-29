@@ -114,7 +114,7 @@ def main():
 
     raw_df = st.session_state["earnings_df"]
     df = raw_df.copy()
-
+    df.to_csv("latest_earnings_df.csv", index=False)
     # Apply sidebar filters
     df = sidebar_filters(df)
 
@@ -143,9 +143,9 @@ def main():
         cols_to_show = [
             c
             for c in [
-                "stock",
+                "Stock",
                 "sector",
-                "earnings_date",
+                "Date",
                 "surprisePercentage",
                 "ret_3d_from_earnings",
                 "ret_10d_from_earnings",
@@ -153,9 +153,18 @@ def main():
                 "reaction_10d",
                 "surprise_bucket",
             ]
+            # "stock": "Stock",
+            # "Date": "Date",
+            # "risk_score": "Risk Score",
+            # "risk_recommendation": "Recommendation",
+            # "excessive_move_label": "Excessive Move",
+            # "surprise_no_reaction_alert": "No Reaction",
+            # "reaction_divergence": "Reaction Divergence",
+            # "muted_response_alert_flag": "Muted Response",
+            # "extreme_volatility_alert_flag": "Extreme Volatility"
             if c in df.columns
         ]
-        st.dataframe(df[cols_to_show].sort_values("earnings_date", ascending=False))
+        st.dataframe(df[cols_to_show].sort_values("Date", ascending=False))
 
         # Simple aggregate: average 3-day reaction by surprise bucket
         if {"surprise_bucket", "ret_3d_from_earnings"}.issubset(df.columns):
@@ -187,7 +196,7 @@ def main():
             for c in [
                 "stock",
                 "sector",
-                "earnings_date",
+                "Date",
                 "surprisePercentage",
                 "ret_3d_from_earnings",
                 "ret_10d_from_earnings",
@@ -209,7 +218,7 @@ def main():
             mask = mask | (alerts["flag_diff_3d"] == 1) | (alerts["flag_diff_10d"] == 1)
 
         alerts = alerts[mask]
-        st.dataframe(alerts[alert_cols].sort_values("earnings_date", ascending=False))
+        st.dataframe(alerts[alert_cols].sort_values("Date", ascending=False))
 
     with tab_stock:
         st.subheader("Single-stock earnings history")
@@ -221,13 +230,13 @@ def main():
             selected_stock = st.selectbox("Choose stock", options=stocks)
             stock_df = df[df["stock"] == selected_stock].copy()
 
-            if "earnings_date" in stock_df.columns:
-                stock_df = stock_df.sort_values("earnings_date")
+            if "Date" in stock_df.columns:
+                stock_df = stock_df.sort_values("Date")
 
             cols = [
                 c
                 for c in [
-                    "earnings_date",
+                    "Date",
                     "surprisePercentage",
                     "ret_3d_from_earnings",
                     "ret_10d_from_earnings",
@@ -244,8 +253,8 @@ def main():
             st.dataframe(stock_df[cols])
 
             # Quick line chart: 3-day reaction over time
-            if {"earnings_date", "ret_3d_from_earnings"}.issubset(stock_df.columns):
-                chart_df = stock_df.set_index("earnings_date")["ret_3d_from_earnings"]
+            if {"Date", "ret_3d_from_earnings"}.issubset(stock_df.columns):
+                chart_df = stock_df.set_index("Date")["ret_3d_from_earnings"]
                 st.line_chart(chart_df)
 
 

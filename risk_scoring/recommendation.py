@@ -437,7 +437,7 @@ def add_extreme_volatility_alert(earnings_df, output_df):
 
     tmp['extreme_volatility_alert'] = np.where(
         tmp['extreme_volatility_alert_flag'] == 1,
-        "Extreme post-earnings volatility: move > 2× normal 10-day range.",
+        "Extreme post-earnings volatility: move > 2x normal 10-day range.",
         "None"
     )
 
