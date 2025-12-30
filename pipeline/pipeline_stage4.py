@@ -9,7 +9,7 @@ from risk_scoring.recommendation import (add_risk_recommendation,
                                          add_muted_response_alert,
                                          add_extreme_volatility_alert,
                                          prepare_df_for_dashboard)
-from config import OUTPUT_DF_FULL_DETAILED_FILE_PATH, DASHBOARD_OUTPUT_FILE_PATH
+from config import OUTPUT_DF_FULL_DETAILED_FILE_PATH
 
 def stage4(earnings_df):
   """ 4. Outputs """

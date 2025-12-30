@@ -11,3 +11,4 @@ statsmodels
 xgboost
 python-dotenv
 nltk
+dotenv

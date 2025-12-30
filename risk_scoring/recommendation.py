@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from config import (SIGNIFICANT_EARNINGS_SURPRISE_THRESHOLD,
                     LOW_REACTION_THRESHOLD,
                     POSITIVE_SURPRISE_THRESHOLD,
@@ -467,7 +468,7 @@ def add_extreme_volatility_alert(earnings_df, output_df):
 
 def prepare_df_for_dashboard(output_df):
     """ Clean and prepare output for the Dashboard """
-    
+
     # Optional: keep only key columns for now
     cols_to_keep = [
         "earnings_date", "stock", "risk_score", "risk_recommendation",
@@ -475,21 +476,39 @@ def prepare_df_for_dashboard(output_df):
         "muted_response_alert_flag", "extreme_volatility_alert_flag", "divergence_alert"
     ]
 
-    dashboard_df = output_df[cols_to_keep]
+    dashboard_df = output_df[cols_to_keep].copy()
     dashboard_df = dashboard_df.dropna(subset=["risk_score"]) # instead of dashboard_df = dashboard_df.dropna()
     
+    # REAL date, no time – stays as datetime.date, so sorting works
+    dashboard_df["Date"] = pd.to_datetime(
+        dashboard_df["earnings_date"], errors="coerce"
+    ).dt.date
 
     # Rename for clean display
     dashboard_df = dashboard_df.rename(columns={
         "stock": "Stock",
-        "earnings_date": "Date",
         "risk_score": "Risk Score",
         "risk_recommendation": "Recommendation",
         "excessive_move_label": "Excessive Move",
         "surprise_no_reaction_alert": "No Reaction",
         "reaction_divergence": "Reaction Divergence",
         "muted_response_alert_flag": "Muted Response",
-        "extreme_volatility_alert_flag": "Extreme Volatility"
+        "extreme_volatility_alert_flag": "Extreme Volatility",
+        "divergence_alert": "Divergence Alert"
     })
 
-    return dashboard_df
+    # put display column where you want it
+    ordered_cols = [
+        "Date",   
+        "Stock",
+        "Risk Score",
+        "Recommendation",
+        "Excessive Move",
+        "No Reaction",
+        "Reaction Divergence",
+        "Muted Response",
+        "Extreme Volatility",
+        "Divergence Alert",
+    ]
+
+    return dashboard_df[ordered_cols]
