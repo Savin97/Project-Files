@@ -1,0 +1,8 @@
+1. Switch from static CSV to API ingestor - data_ingestion folder
+    a) Separate historical vs. incremental updates:
+        - Full history pulled once
+        - Daily updates - append
+    b) Cache internally, example:
+        /data/historical/
+        /data/daily_updates/
+        Then your pipeline runs entirely from YOUR dataset, not the API. This keeps UX fast.
