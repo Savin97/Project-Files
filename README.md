@@ -4,7 +4,7 @@
 **Earnings Risk Engine** — a proprietary earnings-risk analytics engine  
 Built end-to-end by **Michael Savin** — architecture, engineering & UX.
 
-This Product has been adopted and integrated intro production by a stock portfolio management firm - Tipigo Ventures Ltd.
+**This Product has been adopted and integrated intro production by a stock portfolio management firm - Tipigo Ventures Ltd.**
 It analyzes how stocks behave around earnings → quantifies risk, stability & anomalies → produces alerts & recommendations.
 
 I designed and built:
