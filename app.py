@@ -1,6 +1,7 @@
 # app.py
 import streamlit as st
 import sys
+import base64
 import pandas as pd
 from pathlib import Path
 
@@ -127,7 +128,21 @@ def sidebar_filters(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def main():
-    st.title("Breakwater")
+    with open("img/breakwater_logo_with_text_cropped.png", "rb") as f:
+        img_base64 = base64.b64encode(f.read()).decode()
+
+    col1, col2 = st.columns([3, 6])
+
+    with col1:
+        st.markdown(
+            """
+            <div style="display:flex; align-items:center; gap:16px;">
+                <img src="data:img/breakwater_logo_with_text_cropped.png;base64,{}" style="width:600px;margin-bottom:10px; filter: invert(1) brightness(1.2);" />
+            </div>
+            """.format(img_base64),
+            unsafe_allow_html=True
+        )
+
     st.subheader("Earnings Risk & Alerts Dashboard")
 
     with st.sidebar:
