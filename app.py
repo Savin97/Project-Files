@@ -127,6 +127,7 @@ def sidebar_filters(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def main():
+    st.title("Breakwater")
     st.title("Earnings Risk & Alerts Dashboard")
 
     with st.sidebar:

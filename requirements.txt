@@ -6,9 +6,6 @@ requests
 python-dateutil
 seaborn
 matplotlib
-scikit-learn
 statsmodels
-xgboost
 python-dotenv
-nltk
 dotenv
