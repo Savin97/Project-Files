@@ -14,13 +14,17 @@
   <!-- Top navigation -->
   <header class="nav">
     <div class="nav-inner container">
-      <div class="logo">YourProduct</div>
+      <div class="logo">Harbor Markets</div>
       <nav class="nav-links">
+        <a class="breakwater" href="#product">Breakwater</a>
+        <!-- 
+        <a href="#features">Features</a>
         <a href="#features">Features</a>
         <a href="#how-it-works">How it works</a>
         <a href="#faq">FAQ</a>
+        -->
       </nav>
-      <a href="#cta" class="nav-cta">Get Early Access</a>
+      <a href="#cta" class="nav-demo">Breakwater Demo</a>
     </div>
   </header>
 
@@ -35,17 +39,13 @@
           volatility signals, and EPS-surprise behavior.
         </p>
         <div class="hero-actions">
-          <a href="#cta" class="btn-primary">Join the beta</a>
-          <a href="#demo" class="btn-secondary">See example dashboard</a>
+          <a href="#cta" class="btn-primary">See example dashboard</a>
         </div>
-        <p class="hero-subnote">
-          No spam. Just occasional updates and early access invites.
-        </p>
       </div>
       <div class="hero-image">
         <!-- Replace this with a real screenshot -->
         <div class="hero-screenshot-placeholder">
-          <span>Dashboard screenshot here</span>
+          
         </div>
       </div>
     </section>
@@ -87,10 +87,10 @@
         <div class="grid-2">
           <div>
             <ol class="steps">
-              <li>Ingest historical prices and earnings data.</li>
-              <li>Compute earnings reaction statistics and volatility patterns.</li>
-              <li>Score each ticker and generate risk alerts.</li>
-              <li>Surface the results in a clean, actionable dashboard.</li>
+              <li>Model ingests historical stock data for a list of stocks from a custom, proprietary database.</li>
+              <li>Engineers relevant statistical and financial features from this data.</li>
+              <li>Scores each ticker and generates risk alerts.</li>
+              <li>Presents the results in a clean, actionable dashboard.</li>
             </ol>
           </div>
           <div id="demo" class="card card-outline">
@@ -113,6 +113,7 @@
     <section class="section-gray">
       <div class="container">
         <h2>Built for data-driven investors.</h2>
+        <br>
         <div class="grid-3">
           <div class="pill-card">
             <h3>Portfolio managers</h3>
@@ -134,10 +135,10 @@
     <section id="cta" class="section">
       <div class="container cta-box">
         <div>
-          <h2>Get early access to the earnings risk dashboard.</h2>
+          <h2>Reach out!</h2>
           <p>
-            Join the beta list to get updates, early access, and a chance to
-            influence the product roadmap.
+            Please feel free to reach out if you have any questions!
+            Type in 
           </p>
         </div>
         <form class="cta-form" id="beta-form">
@@ -148,7 +149,14 @@
             placeholder="Your email"
             required
           />
-          <button type="submit" class="btn-primary">Join the beta</button>
+          <input
+          type = "text"
+          name="body-text"
+          id="body-text"
+          placeholder="Type your message here..."
+          required
+          />
+          <button type="submit" class="btn-primary">Submit</button>
           <p class="form-note" id="form-message"></p>
         </form>
       </div>
@@ -188,42 +196,16 @@
   <!-- Footer -->
   <footer class="footer">
     <div class="container footer-inner">
-      <p>© <span id="year"></span> YourProduct. All rights reserved.</p>
+      <p>© <span id="year"></span> Harbor Markets. All rights reserved.</p>
       <p class="footer-links">
         <a href="#">Privacy Policy</a>
         <span>•</span>
         <a href="#">Terms</a>
         <span>•</span>
-        <span>Not financial advice.</span>
-      </p>
+        </p>
     </div>
   </footer>
 
-  <script>
-    // Set current year in footer
-    document.getElementById("year").textContent = new Date().getFullYear();
-
-    // Very simple form handler – replace with real backend / Formspree / etc.
-    const form = document.getElementById("beta-form");
-    const message = document.getElementById("form-message");
-
-    form.addEventListener("submit", function (e) {
-      e.preventDefault();
-      const email = document.getElementById("email").value.trim();
-
-      if (!email) {
-        message.textContent = "Please enter a valid email.";
-        message.className = "form-note form-error";
-        return;
-      }
-
-      // TODO: send to your email service or backend
-      console.log("Captured email:", email);
-
-      message.textContent = "Thanks! You’re on the list.";
-      message.className = "form-note form-success";
-      form.reset();
-    });
-  </script>
+  <script src = "script.js" />
 </body>
 </html>

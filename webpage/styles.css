@@ -11,7 +11,7 @@
   --bg: #05070a;
   --bg-alt: #0c1017;
   --card: #121722;
-  --accent: #f5b041;
+  --accent: #ff2929;
   --accent-soft: rgba(245, 176, 65, 0.12);
   --text: #f5f7fa;
   --muted: #9aa4b5;
@@ -82,6 +82,9 @@ body {
   font-size: 0.95rem;
 }
 
+.product{
+}
+
 .nav-links {
   display: flex;
   gap: 1.5rem;
@@ -97,12 +100,12 @@ body {
   color: var(--text);
 }
 
-.nav-cta {
+.nav-demo{
   font-size: 0.9rem;
   padding: 0.45rem 0.9rem;
   border-radius: 999px;
-  border: 1px solid var(--accent);
-  color: var(--accent);
+  border: 2px solid var(--accent);
+  color: #ffffff;
   text-decoration: none;
 }
 
@@ -150,6 +153,9 @@ body {
   aspect-ratio: 16 / 10;
   border-radius: 18px;
   background: radial-gradient(circle at top left, #1f2937 0, #05070a 65%);
+  background-image: url("./img/dash_screenshot.png");
+  background-size: cover;
+  background-position: left;
   border: 1px solid var(--border);
   display: flex;
   align-items: center;
@@ -174,7 +180,7 @@ body {
 
 .btn-primary {
   background: var(--accent);
-  color: #141414;
+  color: #fbfbfb;
   font-weight: 600;
 }
 
